@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Modern Todo App</title>
+  <title>Advanced Todo App</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
@@ -14,20 +10,24 @@
 <div class="container">
 
   <div class="top-bar">
-    <h1>My Todo List</h1>
-    <button class="dark-btn" onclick="toggleDarkMode()">
-      <i class="fa-solid fa-moon"></i>
-    </button>
+    <h1>Todo App</h1>
+    <button onclick="toggleDarkMode()">🌙</button>
   </div>
 
   <div class="input-group">
     <input type="text" id="taskInput" placeholder="Add a new task...">
-    <button class="add-btn" onclick="addTodo()">
-      <i class="fa-solid fa-plus"></i>
-    </button>
+    <button onclick="addTodo()">Add</button>
   </div>
 
   <p id="counter"></p>
+
+  <div class="filters">
+    <button onclick="setFilter('all')" id="filter-all">All</button>
+    <button onclick="setFilter('active')" id="filter-active">Active</button>
+    <button onclick="setFilter('completed')" id="filter-completed">Completed</button>
+  </div>
+
+  <button onclick="clearCompleted()">Clear Completed</button>
 
   <ul id="todoList"></ul>
 
@@ -36,11 +36,12 @@
 <script>
 const API = "http://localhost:5000/todos";
 
-// Load saved theme on page start
+let currentFilter = localStorage.getItem("filter") || "all";
+
+/* ================= LOAD THEME ================= */
 if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark");
 }
-
 
 /* ================= LOAD TODOS ================= */
 async function loadTodos() {
@@ -50,39 +51,43 @@ async function loadTodos() {
     const list = document.getElementById("todoList");
     list.innerHTML = "";
 
-    data.forEach(todo => {
-        const li = createTodoElement(todo);
-        list.appendChild(li);
-    });
+    data
+      .filter(todo => {
+          if (currentFilter === "active") return !todo.completed;
+          if (currentFilter === "completed") return todo.completed;
+          return true;
+      })
+      .forEach(todo => {
+          const li = createTodoElement(todo);
+          list.appendChild(li);
+      });
 
     updateCounter();
+    updateActiveFilterButton();
 }
 
 /* ================= CREATE ELEMENT ================= */
 function createTodoElement(todo) {
     const li = document.createElement("li");
     li.setAttribute("draggable", true);
-    li.classList.add("fade-in");
 
     if (todo.completed) li.classList.add("completed");
 
     li.innerHTML = `
-        <div class="left">
+        <div>
             <input type="checkbox"
                 ${todo.completed ? "checked" : ""}
                 onchange="toggleTodo(${todo.id}, this.checked)">
             <span>${todo.task}</span>
         </div>
-        <button class="delete-btn" onclick="deleteTodo(${todo.id}, this)">
-            <i class="fa-solid fa-trash"></i>
-        </button>
+        <button onclick="deleteTodo(${todo.id}, this)">Delete</button>
     `;
 
     addDragEvents(li);
     return li;
 }
 
-/* ================= ADD TODO ================= */
+/* ================= ADD ================= */
 async function addTodo() {
     const input = document.getElementById("taskInput");
     const task = input.value.trim();
@@ -95,32 +100,54 @@ async function addTodo() {
     });
 
     const newTodo = await res.json();
-    const list = document.getElementById("todoList");
-    list.appendChild(createTodoElement(newTodo));
-
     input.value = "";
-    updateCounter();
+    loadTodos();
 }
 
 /* ================= DELETE ================= */
 async function deleteTodo(id, btn) {
-    const li = btn.closest("li");
-    li.classList.add("fade-out");
-
-    setTimeout(async () => {
-        await fetch(`${API}/${id}`, { method: "DELETE" });
-        li.remove();
-        updateCounter();
-    }, 300);
+    await fetch(`${API}/${id}`, { method: "DELETE" });
+    btn.closest("li").remove();
+    updateCounter();
 }
 
-/* ================= TOGGLE COMPLETE ================= */
+/* ================= TOGGLE ================= */
 async function toggleTodo(id, completed) {
     await fetch(`${API}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed })
     });
+
+    loadTodos();
+}
+
+/* ================= FILTER ================= */
+function setFilter(filter) {
+    currentFilter = filter;
+    localStorage.setItem("filter", filter);
+    loadTodos();
+}
+
+function updateActiveFilterButton() {
+    document.querySelectorAll(".filters button").forEach(btn => {
+        btn.classList.remove("active-filter");
+    });
+
+    const activeBtn = document.getElementById(`filter-${currentFilter}`);
+    if (activeBtn) activeBtn.classList.add("active-filter");
+}
+
+/* ================= CLEAR COMPLETED ================= */
+async function clearCompleted() {
+    const res = await fetch(API);
+    const data = await res.json();
+
+    const completedTasks = data.filter(todo => todo.completed);
+
+    for (let todo of completedTasks) {
+        await fetch(`${API}/${todo.id}`, { method: "DELETE" });
+    }
 
     loadTodos();
 }
@@ -145,7 +172,6 @@ function toggleDarkMode() {
         localStorage.setItem("theme", "light");
     }
 }
-
 
 /* ================= DRAG & DROP ================= */
 function addDragEvents(li) {

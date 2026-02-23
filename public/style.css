@@ -137,3 +137,27 @@ li:hover {
 .dragging {
     opacity: 0.5;
 }
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filters button {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    background: #e0e0e0;
+    transition: 0.3s;
+}
+
+.filters button:hover {
+    background: #d0d0d0;
+}
+
+.active-filter {
+    background: #667eea !important;
+    color: white;
+}
