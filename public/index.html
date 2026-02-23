@@ -36,6 +36,12 @@
 <script>
 const API = "http://localhost:5000/todos";
 
+// Load saved theme on page start
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+}
+
+
 /* ================= LOAD TODOS ================= */
 async function loadTodos() {
     const res = await fetch(API);
@@ -132,7 +138,14 @@ function updateCounter() {
 /* ================= DARK MODE ================= */
 function toggleDarkMode() {
     document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+    } else {
+        localStorage.setItem("theme", "light");
+    }
 }
+
 
 /* ================= DRAG & DROP ================= */
 function addDragEvents(li) {
