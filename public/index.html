@@ -1,23 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Todo App</title>
+  <title>Modern Todo App</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
 
-  <h1>Todo List</h1>
+<div class="container">
 
-  <input type="text" id="taskInput" placeholder="Enter task">
-  <button onclick="addTodo()">Add</button>
+  <div class="top-bar">
+    <h1>My Todo List</h1>
+    <button class="dark-btn" onclick="toggleDarkMode()">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+  </div>
+
+  <div class="input-group">
+    <input type="text" id="taskInput" placeholder="Add a new task...">
+    <button class="add-btn" onclick="addTodo()">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+
+  <p id="counter"></p>
 
   <ul id="todoList"></ul>
 
-<ul id="todoList"></ul>
+</div>
 
 <script>
 const API = "http://localhost:5000/todos";
 
+/* ================= LOAD TODOS ================= */
 async function loadTodos() {
     const res = await fetch(API);
     const data = await res.json();
@@ -26,53 +45,117 @@ async function loadTodos() {
     list.innerHTML = "";
 
     data.forEach(todo => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <input type="checkbox" ${todo.completed ? "checked" : ""} 
-                   onchange="toggleTodo(${todo.id}, this.checked)">
-            <span style="text-decoration: ${todo.completed ? "line-through" : "none"}">
-                ${todo.task}
-            </span>
-            <button onclick="deleteTodo(${todo.id})">❌</button>
-        `;
-
+        const li = createTodoElement(todo);
         list.appendChild(li);
     });
+
+    updateCounter();
 }
 
+/* ================= CREATE ELEMENT ================= */
+function createTodoElement(todo) {
+    const li = document.createElement("li");
+    li.setAttribute("draggable", true);
+    li.classList.add("fade-in");
+
+    if (todo.completed) li.classList.add("completed");
+
+    li.innerHTML = `
+        <div class="left">
+            <input type="checkbox"
+                ${todo.completed ? "checked" : ""}
+                onchange="toggleTodo(${todo.id}, this.checked)">
+            <span>${todo.task}</span>
+        </div>
+        <button class="delete-btn" onclick="deleteTodo(${todo.id}, this)">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    `;
+
+    addDragEvents(li);
+    return li;
+}
+
+/* ================= ADD TODO ================= */
 async function addTodo() {
-    const task = document.getElementById("taskInput").value;
+    const input = document.getElementById("taskInput");
+    const task = input.value.trim();
     if (!task) return;
 
-    await fetch(API, {
+    const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task })
     });
 
-    document.getElementById("taskInput").value = "";
-    loadTodos();
+    const newTodo = await res.json();
+    const list = document.getElementById("todoList");
+    list.appendChild(createTodoElement(newTodo));
+
+    input.value = "";
+    updateCounter();
 }
 
-async function deleteTodo(id) {
-    await fetch(`${API}/${id}`, { method: "DELETE" });
-    loadTodos();
+/* ================= DELETE ================= */
+async function deleteTodo(id, btn) {
+    const li = btn.closest("li");
+    li.classList.add("fade-out");
+
+    setTimeout(async () => {
+        await fetch(`${API}/${id}`, { method: "DELETE" });
+        li.remove();
+        updateCounter();
+    }, 300);
 }
 
+/* ================= TOGGLE COMPLETE ================= */
 async function toggleTodo(id, completed) {
     await fetch(`${API}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed }) // send boolean
+        body: JSON.stringify({ completed })
     });
 
     loadTodos();
 }
 
+/* ================= COUNTER ================= */
+function updateCounter() {
+    const total = document.querySelectorAll("#todoList li").length;
+    const completed = document.querySelectorAll("#todoList li.completed").length;
+    const remaining = total - completed;
+
+    document.getElementById("counter").textContent =
+        `${remaining} task(s) remaining`;
+}
+
+/* ================= DARK MODE ================= */
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+}
+
+/* ================= DRAG & DROP ================= */
+function addDragEvents(li) {
+    li.addEventListener("dragstart", () => {
+        li.classList.add("dragging");
+    });
+
+    li.addEventListener("dragend", () => {
+        li.classList.remove("dragging");
+    });
+
+    const list = document.getElementById("todoList");
+
+    list.addEventListener("dragover", e => {
+        e.preventDefault();
+        const dragging = document.querySelector(".dragging");
+        list.appendChild(dragging);
+    });
+}
+
+/* ================= INIT ================= */
 loadTodos();
 </script>
-
 
 </body>
 </html>

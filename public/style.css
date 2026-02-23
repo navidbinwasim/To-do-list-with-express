@@ -1,19 +1,139 @@
-body {
-  font-family: Arial;
-  text-align: center;
-  background: #f4f4f4;
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
 }
 
+/* Background */
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* Main Card */
+.container {
+  background: white;
+  width: 400px;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Title */
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Input Section */
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  outline: none;
+  transition: 0.3s;
+}
+
+input[type="text"]:focus {
+  border-color: #667eea;
+}
+
+/* Add Button */
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Add Button Color */
+.add-btn {
+  background: #667eea;
+  color: white;
+}
+
+.add-btn:hover {
+  background: #5563c1;
+}
+
+/* Todo List */
 ul {
   list-style: none;
-  padding: 0;
 }
 
 li {
-  background: white;
-  margin: 10px auto;
+  background: #f7f7f7;
   padding: 10px;
-  width: 300px;
+  border-radius: 8px;
+  margin-bottom: 10px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  transition: 0.3s;
+}
+
+li:hover {
+  background: #ececec;
+}
+
+/* Completed Task */
+.completed span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+/* Delete Button */
+.delete-btn {
+  background: #ff4d4d;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #d93636;
+}
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateX(20px); }
+}
+.dark {
+    background: #1e1e1e;
+}
+
+.dark .container {
+    background: #2c2c2c;
+    color: white;
+}
+
+.dark li {
+    background: #3a3a3a;
+}
+.dragging {
+    opacity: 0.5;
 }
