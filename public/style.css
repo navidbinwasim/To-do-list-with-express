@@ -24,13 +24,34 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
+/* Top Bar Layout */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px; /* creates space from input box */
+}
+
+/* Dark Mode Button */
+.dark-toggle {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #222;
+  color: white;
+}
+
+.dark-toggle:hover {
+  background: #000;
+}
+
+
 
 /* Title */
 h1 {
-  text-align: center;
-  margin-bottom: 20px;
+  margin: 0;
   color: #333;
 }
+
 
 /* Input Section */
 .input-group {
