@@ -182,3 +182,58 @@ li:hover {
     background: #667eea !important;
     color: white;
 }
+.auth-box {
+  width: 350px;
+  text-align: center;
+}
+
+.auth-box h2 {
+  margin-bottom: 20px;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.auth-box button {
+  width: 100%;
+  background: #667eea;
+  color: white;
+}
+
+.auth-box button:hover {
+  background: #5563c1;
+}
+
+.auth-box p {
+  margin-top: 15px;
+}
+
+.auth-box a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#logoutBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 1000;
+}
+
+#logoutBtn:hover {
+    background-color: #ff7875;
+}
