@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container admin">
+  <div class="admin-header">
+    <h1>Admin Panel</h1>
+    <div>
+      <button id="logoutBtn" class="btn danger">Logout</button>
+    </div>
+  </div>
+
+  <div class="admin-grid">
+    <section class="panel panel-left">
+      <h2>Users</h2>
+      <table id="usersTable" class="admin-table" cellpadding="6"></table>
+    </section>
+
+    <section class="panel panel-right">
+      <h2 id="todosTitle">User Todos</h2>
+      <div id="userTodos" class="admin-panel-box">Select a user to view todos</div>
+    </section>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+
+// Simple check: if token role is not admin, redirect to todo page
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+  } catch (e) {
+    return null;
+  }
+};
+const payload = parseJwt(token);
+if (!payload || payload.role !== 'admin') {
+  window.location.href = 'todo.html';
+}
+
+const API = `${window.location.origin}/api/admin`;
+
+async function loadUsers() {
+  const res = await fetch(`${API}/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+  const users = await res.json();
+  const table = document.getElementById('usersTable');
+  table.innerHTML = '<tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Disabled</th><th>Actions</th></tr>';
+  users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.id}</td>
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td id="role-${u.id}">${u.role || 'user'}</td>
+      <td id="disabled-${u.id}">${u.disabled ? 'yes' : 'no'}</td>
+      <td>
+        <button class="btn" onclick="viewTodos(${u.id})">View Todos</button>
+        <button class="btn" onclick="changeRole(${u.id})">Toggle Admin</button>
+        <button class="btn" onclick="toggleDisable(${u.id})">Toggle Disable</button>
+        <button class="btn" onclick="promptReset(${u.id})">Reset Password</button>
+        <button class="btn danger" onclick="deleteUser(${u.id})">Delete User</button>
+      </td>`;
+    table.appendChild(tr);
+  });
+}
+
+async function viewTodos(userId) {
+  const res = await fetch(`${API}/users/${userId}/todos`, { headers: { 'Authorization': `Bearer ${token}` } });
+  const todos = await res.json();
+  const div = document.getElementById('userTodos');
+  div.innerHTML = `<h3>Todos for user ${userId}</h3><ul>${todos.map(t=>`<li>${t.task} <button onclick="deleteTodo(${t.id})">Delete</button></li>`).join('')}</ul>`;
+}
+
+async function changeRole(userId) {
+  const roleEl = document.getElementById(`role-${userId}`);
+  const newRole = roleEl.textContent === 'admin' ? 'user' : 'admin';
+  await fetch(`${API}/users/${userId}/role`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ role: newRole })
+  });
+  roleEl.textContent = newRole;
+}
+
+async function toggleDisable(userId) {
+  const disabledEl = document.getElementById(`disabled-${userId}`);
+  const currently = disabledEl.textContent === 'yes';
+  await fetch(`${API}/users/${userId}/disable`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ disabled: !currently })
+  });
+  disabledEl.textContent = !currently ? 'yes' : 'no';
+}
+
+async function promptReset(userId) {
+  const pw = prompt('Enter new password for user:');
+  if (!pw) return;
+  await fetch(`${API}/users/${userId}/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ password: pw })
+  });
+  alert('Password reset');
+}
+
+async function deleteUser(userId) {
+  if (!confirm('Delete user and all their todos?')) return;
+  await fetch(`${API}/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+  loadUsers();
+}
+
+async function deleteTodo(id) {
+  await fetch(`${API}/todos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+  // refresh UI
+  const visible = document.getElementById('userTodos');
+  if (visible.innerHTML.includes(`>${id}<`)) loadUsers();
+}
+
+// Logout
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('token');
+  window.location.href = 'login.html';
+});
+
+loadUsers();
+</script>
+</body>
+</html>

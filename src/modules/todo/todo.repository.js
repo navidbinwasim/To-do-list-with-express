@@ -29,3 +29,11 @@ exports.remove = async (id, userId) => {
     [id, userId]
   );
 };
+
+// Admin helper: remove any todo by id (no user check)
+exports.removeAny = async (id) => {
+  await pool.query(
+    'DELETE FROM todos WHERE id = $1',
+    [id]
+  );
+};

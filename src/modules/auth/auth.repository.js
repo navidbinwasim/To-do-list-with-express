@@ -14,3 +14,22 @@ exports.findByEmail = async(email)=>{
     );
     return result.rows[0];
 };
+
+exports.findAll = async () => {
+    const result = await pool.query(
+        'SELECT id, name, email, role, disabled FROM users ORDER BY id'
+    );
+    return result.rows;
+};
+
+exports.deleteUser = async (userId) => {
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+};
+
+exports.setDisabled = async (userId, disabled) => {
+    await pool.query('UPDATE users SET disabled = $1 WHERE id = $2', [disabled, userId]);
+};
+
+exports.updatePassword = async (userId, hashedPassword) => {
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, userId]);
+};

@@ -41,5 +41,19 @@ async function login() {
 
   localStorage.setItem("token", data.token);
 
-  window.location.href = "todo.html";
+  // Redirect admins to admin panel; others to todo page
+  const parseJwt = (token) => {
+    try {
+      return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const payload = parseJwt(data.token);
+  if (payload && payload.role === 'admin') {
+    window.location.href = "admin.html";
+  } else {
+    window.location.href = "todo.html";
+  }
 }
